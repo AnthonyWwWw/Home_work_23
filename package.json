@@ -3,7 +3,11 @@
     "bootstrap": "^5.3.3",
     "cors": "^2.8.5",
     "express": "^4.19.2",
-    "node": "^20.14.0"
+    "install": "^0.13.0",
+    "mongodb": "^6.7.0",
+    "mongoose": "^8.4.1",
+    "node": "^20.14.0",
+    "npm": "^10.8.1"
   },
   "name": "node",
   "version": "1.0.0",

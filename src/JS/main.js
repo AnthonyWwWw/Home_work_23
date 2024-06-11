@@ -8,11 +8,13 @@ const getResponse = async () => {
 }
 
 document.querySelector('#buttonGetTask').addEventListener('click', async () => {
-    const response = await getResponse(); 
-    const data = await response.json();
-    saveStatusPOST ?
-        checkingAvailabilityTasks(data)
-        : alert('No new tasks have been added');
+    if (saveStatusPOST){
+        const response = await getResponse(); 
+        const data = await response.json();
+        checkingAvailabilityTasks(data);
+    }else{
+        alert('No new tasks have been added');
+    }
     saveStatusPOST = false;
 });
 
@@ -31,12 +33,12 @@ function renderTask(data) {
     data.forEach(task => {
         const newTask = document.createElement('tr');
         newTask.innerHTML = `
-            <th scope="row">${task.id}</th>
+            <th scope="row">${task._id}</th>
             <td>${task.text}</td>
             <td data-progress>${task.done ? 'Done' : 'In progress'}</td>
             <td>
-                <button type="button" data-id="${task.id}" class="btn btn-danger button-delete">Delete</button>
-                <button type="button" data-id="${task.id}" class="btn btn-success ms-1 button-finished">Finished</button>
+                <button type="button" data-id="${task._id}" class="btn btn-danger button-delete">Delete</button>
+                <button type="button" data-id="${task._id}" class="btn btn-success ms-1 button-finished">Finished</button>
             </td>
         `;
         tbodyConteiner.append(newTask);

@@ -1,10 +1,17 @@
 const express = require('express');
+const TodosModel = require('../todo.model');
+const mongoose = require('mongoose');
 const cors = require('cors');
+const connect = mongoose.connect('mongodb+srv://anton160400:Blithart02@homework23.nzf7muk.mongodb.net/?retryWrites=true&w=majority&appName=HomeWork23');
+connect.then(() => console.log('Connected!'));
 const app = express();
 
 app.listen(5002, () => {
-    console.log(`Server running on localhost:5002`);
-});
+  console.log('Server is running on localhost:5000...')
+})
+app.use(cors())
+app.use(express.json())
+app.use(express.static('client'))
 
 app.use(cors());
 app.use(express.json());
@@ -12,33 +19,52 @@ app.use(express.json());
 let todos = [];
 
 app.get('/todos', (req, res) => {
-    res.send(todos)
+    TodosModel.find().then(
+        response => res.send(response)
+    )
 });
 
 app.post('/todos', (req, res) => {
-    console.log(req.body);
-    const newTodo = {
-        ...req.body,
-        id: Math.floor(Math.random() * 100),
-    }
-
-    todos.push(newTodo);
-    res.send(todos);
+    const todo = new TodosModel(req.body);
+    todo.save().then(
+        response => res.send(response)
+    )
 })
 
 app.delete('/todos/:id', (req, res) => {
-    const id = +req.params.id;
-    todos = todos.filter(todo => todo.id !== id);
-    res.send({ message: 'Success' });
-  })
+    const id = req.params.id;
 
-app.put('/todos/:id', (req, res) => {
-    const id = +req.params.id;
-    todos = todos.map(todo => {
-        if (todo.id === id) {
-            return { ...todo, done: !todo.done };
-        }
-        return todo;
-    });
-    res.send(todos);
+    TodosModel.findByIdAndDelete(id)
+        .then(todo => {
+            if (!todo) {
+                return res.status(404).send({ message: 'Todo not found' });
+            }
+            res.send({ message: 'Todo deleted successfully' });
+        })
+        .catch(error => {
+            console.error(error);
+            res.status(500).send({ message: 'Internal Server Error' });
+        });
+});
+
+  app.put('/todos/:id', (req, res) => {
+    const id = req.params.id;
+    
+    if (!id) {
+        return res.status(400).send({ message: 'ID parameter is missing' });
+    }
+
+    TodosModel.findById(id)
+        .then(todo => {
+            if (!todo) {
+                return res.status(404).send({ message: 'Todo not found' });
+            }
+            todo.done = !todo.done;
+            return todo.save();
+        })
+        .then(updatedTodo => res.send(updatedTodo))
+        .catch(error => {
+            console.error(error);
+            res.status(500).send({ message: 'Internal Server Error' });
+        });
 });
