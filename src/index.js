@@ -11,12 +11,24 @@ app.listen(5002, () => {
 })
 app.use(cors())
 app.use(express.json())
-app.use(express.static('client'))
 
-app.use(cors());
-app.use(express.json());
+app.get('/check_data_on_load', (req, res) => {
+    TodosModel.find().then(
+        response => {
+            if (response && response.length > 0) {
+                console.log('Data is available in the database');
+                res.send(true);
+            } else {
+                console.log('No data available in the database');
+                res.send(false);
+            }
+        }
+    ).catch(error => {
+        console.error('Error checking data in the database:', error);
+        res.status(500).send({ message: 'Internal Server Error' });
+    });
+});
 
-let todos = [];
 
 app.get('/todos', (req, res) => {
     TodosModel.find().then(
