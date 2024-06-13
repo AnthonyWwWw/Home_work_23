@@ -14,7 +14,7 @@
   "main": "index.js",
   "tupe": "module",
   "scripts": {
-    "startdev": "nodemon src/index.js",
+    "startdev": "nodemon src/backend/server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",

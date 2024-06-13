@@ -1,11 +1,11 @@
 document.addEventListener('DOMContentLoaded', () =>{
-    let status;
+    let databaseHasElements;
     
     (async () => {
-        status = await databaseCompletenessCheck();
+        databaseHasElements = await checkDatabaseCompleteness();
     })();
 
-    async function databaseCompletenessCheck() {
+    async function checkDatabaseCompleteness() {
         const response = await fetch('http://localhost:5002/check_data_on_load', {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' },
@@ -14,6 +14,10 @@ document.addEventListener('DOMContentLoaded', () =>{
         return data;
     }
     
+    document.querySelector('#form').addEventListener('submit', event => {
+        event.preventDefault();
+        submitTask();
+    })
 
     const LOCALL_STORAGE = 'task';
     const checkLocalStorage = JSON.parse(localStorage.getItem(LOCALL_STORAGE)) || [];
@@ -23,10 +27,10 @@ document.addEventListener('DOMContentLoaded', () =>{
 
     function loadContentLocallStorage(tasks){
         renderTask(tasks);
-        status = false;
+        databaseHasElements = false;
     }
 
-    const getResponse = async () => {
+    const getTask = async () => {
         return fetch('http://localhost:5002/todos', {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' },
@@ -36,15 +40,15 @@ document.addEventListener('DOMContentLoaded', () =>{
     setTimeout(() =>{
         document.querySelector('#buttonGetTask').classList.remove('disable-color');
         document.querySelector('#buttonGetTask').addEventListener('click', async () => {
-            if (status){
-                const response = await getResponse(); 
+            if (databaseHasElements){
+                const response = await getTask(); 
                 const data = await response.json();
                 localStorage.setItem(LOCALL_STORAGE, JSON.stringify(data));
                 checkingAvailabilityTasks(data);
             }else{
                 alert('No new tasks have been added');
             }
-            status = false;
+            databaseHasElements = false;
         });
     }, 1000);
 
@@ -85,7 +89,7 @@ document.addEventListener('DOMContentLoaded', () =>{
             button.addEventListener('click', async (event) => {
                 const targetButton = event.target;
                 const idDeleteElement = targetButton.getAttribute('data-id');
-                const response = await deleteResponse(idDeleteElement);
+                const response = await deleteTask(idDeleteElement);
                 if (response.ok) {
                     targetButton.closest('tr').remove();
                     const getTasksLocallStorage = JSON.parse(localStorage.getItem(LOCALL_STORAGE)) || [];
@@ -111,7 +115,7 @@ document.addEventListener('DOMContentLoaded', () =>{
                     doneCell.textContent = 'Done';
                 }
 
-                const response = await putResponse(idElement, !doneValue); 
+                const response = await putTask(idElement, !doneValue); 
                 if (!response.ok) {
                     console.error('Failed to update task');
                     if (doneValue) {
@@ -150,7 +154,7 @@ document.addEventListener('DOMContentLoaded', () =>{
         return updatedTasks;
     }
 
-    const putResponse = async (idElement, done) => {
+    const putTask = async (idElement, done) => {
         return fetch(`http://localhost:5002/todos/${idElement}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
@@ -159,7 +163,7 @@ document.addEventListener('DOMContentLoaded', () =>{
     }
 
 
-    const postResponse = async (text) => {
+    const postTask = async (text) => {
         return fetch('http://localhost:5002/todos', {
             method: "POST",
             headers: { 'Content-Type': 'application/json' },
@@ -171,18 +175,22 @@ document.addEventListener('DOMContentLoaded', () =>{
         })
     }
 
-    document.querySelector('#buttonPostTask').addEventListener('click', async () => {
+    document.querySelector('#buttonPostTask').addEventListener('click', () => {
+        submitTask();
+    });
+
+    async function submitTask(){
         const input = document.querySelector('#input');
         const verificationValue = verificationEnteredData(input.value);
         if (verificationValue) {
-            const response = await postResponse(input.value);
+            const response = await postTask(input.value);
             const data = await response.json();
-            status = true;
+            databaseHasElements = true;
             input.value = '';
         } else {
             console.error('Input value = null');
         }
-    });
+    }
 
     function verificationEnteredData(text) {
         if (isNaN(text) && text.trim() !== '') {
@@ -197,7 +205,7 @@ document.addEventListener('DOMContentLoaded', () =>{
         return regex.test(text);
     }
 
-    const deleteResponse = async (idElement) => {
+    const deleteTask = async (idElement) => {
         return fetch(`http://localhost:5002/todos/${idElement}`, {
             method: 'DELETE',
             headers: { 'Content-Type': 'application/json' }

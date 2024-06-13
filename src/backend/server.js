@@ -1,5 +1,5 @@
 const express = require('express');
-const TodosModel = require('../todo.model');
+const TodosModel = require('./models/todo.model');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const connect = mongoose.connect('mongodb+srv://anton160400:Blithart02@homework23.nzf7muk.mongodb.net/?retryWrites=true&w=majority&appName=HomeWork23');
@@ -33,14 +33,20 @@ app.get('/check_data_on_load', (req, res) => {
 app.get('/todos', (req, res) => {
     TodosModel.find().then(
         response => res.send(response)
-    )
+    ).catch(error => {
+        console.error('Error checking data in the database:', error);
+        res.status(500).send({ message: 'Internal Server Error' });
+    });
 });
 
 app.post('/todos', (req, res) => {
     const todo = new TodosModel(req.body);
     todo.save().then(
         response => res.send(response)
-    )
+    ).catch(error => {
+        console.error('Error checking data in the database:', error);
+        res.status(500).send({ message: 'Internal Server Error' });
+    });
 })
 
 app.delete('/todos/:id', (req, res) => {
